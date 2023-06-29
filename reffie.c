@@ -6,7 +6,8 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-
+#include <linux/fs.h>        /* Definition of FICLONE* constants */
+#include <sys/ioctl.h>
 
 
 void docopy(int in, int out, int pct, long step) {
@@ -33,7 +34,10 @@ void docopy(int in, int out, int pct, long step) {
 		off64_t offset = i*buffersz;
 
 		if ((i%100) < pct) {
-			copy_file_range(in,&offset,out,&offset,buffersz,0);
+			//copy_file_range(in,&offset,out,&offset,buffersz,0);
+			//explicit clone
+			struct file_clone_range r = {in,offset,buffersz,offset};
+                        ioctl(out, FICLONERANGE, &r);
 		} else {
 			//some very not checked code
 			lseek(in,offset,SEEK_SET);
